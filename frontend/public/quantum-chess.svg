@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="quantumGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="50%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Atom orbits -->
+  <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="url(#quantumGrad)" stroke-width="2" opacity="0.6" transform="rotate(-30 50 50)"/>
+  <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="url(#quantumGrad)" stroke-width="2" opacity="0.6" transform="rotate(30 50 50)"/>
+  <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="url(#quantumGrad)" stroke-width="2" opacity="0.6" transform="rotate(90 50 50)"/>
+
+  <!-- Chess piece (simplified king) -->
+  <g filter="url(#glow)">
+    <path d="M50 20 L50 25 M45 22.5 L55 22.5" stroke="url(#quantumGrad)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M38 35 Q50 25 62 35 L60 55 Q50 52 40 55 L38 35" fill="url(#quantumGrad)"/>
+    <ellipse cx="50" cy="60" rx="15" ry="5" fill="url(#quantumGrad)"/>
+    <rect x="35" y="60" width="30" height="8" fill="url(#quantumGrad)"/>
+    <ellipse cx="50" cy="68" rx="15" ry="5" fill="url(#quantumGrad)"/>
+  </g>
+
+  <!-- Electron particles -->
+  <circle cx="25" cy="35" r="4" fill="#06b6d4" filter="url(#glow)"/>
+  <circle cx="75" cy="65" r="4" fill="#8b5cf6" filter="url(#glow)"/>
+  <circle cx="50" cy="85" r="4" fill="#6366f1" filter="url(#glow)"/>
+</svg>
