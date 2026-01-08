@@ -71,16 +71,12 @@ export function GamePage() {
   // Initialize game
   useEffect(() => {
     const storedPlayerId = sessionStorage.getItem('playerId') || ''
-    const storedColor = sessionStorage.getItem('playerColor') as 'white' | 'black' || 'white'
+    const storedColor = sessionStorage.getItem('playerColor')
 
     setPlayerId(storedPlayerId)
-    setPlayerColor(storedColor)
 
-    // Fetch initial game state
-    fetchGameState()
-
-    // Connect WebSocket
-    connectWebSocket(storedPlayerId)
+    // Initialize game
+    initializeGame(storedPlayerId, storedColor)
 
     return () => {
       wsRef.current?.close()
@@ -92,6 +88,46 @@ export function GamePage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages])
 
+  const initializeGame = async (pid: string, storedColor: string | null) => {
+    try {
+      // Fetch game state first
+      const response = await fetch(`/api/games/${gameId}`)
+      const data = await response.json()
+
+      // Set player color - API response takes precedence
+      const color = data.player_color || storedColor || 'white'
+      setPlayerColor(color as 'white' | 'black')
+
+      // For AI games, auto-start if not started
+      if (data.ai_color && !data.started) {
+        const startResponse = await fetch(`/api/games/${gameId}/start`, { method: 'POST' })
+        const startData = await startResponse.json()
+
+        if (startData.success) {
+          setGameState({
+            ...data,
+            started: true,
+            board_state: startData.board_state,
+            player_color: startData.player_color || data.player_color
+          })
+
+          if (startData.player_color) {
+            setPlayerColor(startData.player_color as 'white' | 'black')
+          }
+        } else {
+          setGameState(data)
+        }
+      } else {
+        setGameState(data)
+      }
+
+      // Connect WebSocket after state is set
+      connectWebSocket(pid)
+    } catch (error) {
+      console.error('Failed to initialize game:', error)
+    }
+  }
+
   const fetchGameState = async () => {
     try {
       const response = await fetch(`/api/games/${gameId}`)
@@ -99,7 +135,7 @@ export function GamePage() {
       setGameState(data)
 
       if (data.player_color) {
-        setPlayerColor(data.player_color)
+        setPlayerColor(data.player_color as 'white' | 'black')
       }
     } catch (error) {
       console.error('Failed to fetch game state:', error)

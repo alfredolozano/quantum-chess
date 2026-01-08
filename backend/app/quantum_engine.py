@@ -281,41 +281,90 @@ class QuantumChessEngine:
         dx = abs(target_col - source_col)
         dy = abs(target_row - source_row)
 
+        # Check if target has own piece (can't capture own pieces)
+        target_piece_id = self.square_to_piece.get(move.target1)
+        if target_piece_id:
+            target_piece = self.pieces.get(target_piece_id)
+            if target_piece and target_piece.color == piece.color:
+                return False
+
         if piece.piece_type == PieceType.KNIGHT:
-            # Knight moves in L-shape
+            # Knight moves in L-shape (can jump over pieces)
             return (dx == 2 and dy == 1) or (dx == 1 and dy == 2)
 
         elif piece.piece_type == PieceType.ROOK:
             # Rook moves in straight lines
-            return dx == 0 or dy == 0
+            if not (dx == 0 or dy == 0):
+                return False
+            # Check path is clear
+            return self._is_path_clear(source_col, source_row, target_col, target_row)
 
         elif piece.piece_type == PieceType.BISHOP:
             # Bishop moves diagonally
-            return dx == dy
+            if dx != dy or dx == 0:
+                return False
+            # Check path is clear
+            return self._is_path_clear(source_col, source_row, target_col, target_row)
 
         elif piece.piece_type == PieceType.QUEEN:
             # Queen moves like rook or bishop
-            return dx == 0 or dy == 0 or dx == dy
+            if not (dx == 0 or dy == 0 or dx == dy):
+                return False
+            # Check path is clear
+            return self._is_path_clear(source_col, source_row, target_col, target_row)
 
         elif piece.piece_type == PieceType.KING:
             # King moves one square any direction
-            return dx <= 1 and dy <= 1
+            return dx <= 1 and dy <= 1 and (dx > 0 or dy > 0)
 
         elif piece.piece_type == PieceType.PAWN:
             direction = 1 if piece.color == Color.WHITE else -1
-            # Pawn move forward
+            target_has_enemy = target_piece_id and self.pieces.get(target_piece_id) and \
+                               self.pieces[target_piece_id].color != piece.color
+
+            # Pawn move forward (can only move forward to empty square)
             if dx == 0:
+                # Can't move forward if there's any piece there
+                if target_piece_id:
+                    return False
                 if target_row - source_row == direction:
                     return True
                 # First move can be two squares
-                if (source_row == 1 and piece.color == Color.WHITE) or \
-                   (source_row == 6 and piece.color == Color.BLACK):
-                    if target_row - source_row == 2 * direction:
-                        return True
-            # Pawn capture diagonally
+                start_row = 1 if piece.color == Color.WHITE else 6
+                if source_row == start_row and target_row - source_row == 2 * direction:
+                    # Check intermediate square is also empty
+                    intermediate_square = index_to_square((source_row + direction) * 8 + source_col)
+                    if self.square_to_piece.get(intermediate_square):
+                        return False
+                    return True
+            # Pawn capture diagonally (only if enemy piece exists)
             elif dx == 1 and target_row - source_row == direction:
-                return True
+                return target_has_enemy
             return False
+
+        return False
+
+    def _is_path_clear(self, source_col: int, source_row: int,
+                       target_col: int, target_row: int) -> bool:
+        """Check if the path between source and target is clear (for sliding pieces)"""
+        # Determine direction
+        col_step = 0 if target_col == source_col else (1 if target_col > source_col else -1)
+        row_step = 0 if target_row == source_row else (1 if target_row > source_row else -1)
+
+        # Check each square along the path (excluding source and target)
+        current_col = source_col + col_step
+        current_row = source_row + row_step
+
+        while current_col != target_col or current_row != target_row:
+            check_idx = current_row * 8 + current_col
+            check_square = index_to_square(check_idx)
+
+            # If there's a piece blocking the path, move is invalid
+            if self.square_to_piece.get(check_square):
+                return False
+
+            current_col += col_step
+            current_row += row_step
 
         return True
 
