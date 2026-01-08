@@ -1,12 +1,22 @@
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-websockets==12.0
-cirq==1.3.0
-numpy==1.26.3
-pydantic==2.5.3
-python-multipart==0.0.6
-google-generativeai==0.3.2
-python-dotenv==1.0.0
-httpx==0.26.0
-redis==5.0.1
-aioredis==2.0.1
+# Web Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+websockets>=12.0
+python-multipart>=0.0.6
+
+# Quantum Computing
+cirq-core>=1.3.0
+numpy>=1.24.0,<2.0.0
+
+# Data Validation
+pydantic>=2.5.0
+
+# Google AI
+google-generativeai>=0.3.0
+
+# Utilities
+python-dotenv>=1.0.0
+httpx>=0.26.0
+
+# Optional: Redis for scaling (comment out if not using)
+# redis>=5.0.0
